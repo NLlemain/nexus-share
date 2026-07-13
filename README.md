@@ -4,7 +4,7 @@ Nexus Share is a local-first, encrypted peer-to-peer file transfer project that 
 
 ## About this project
 
-I built this as a school project over two weeks. It was a chance to learn more about file transfers, encryption, I2P, and building a small desktop-style web app.
+I built this as a school project over two weeks. It was a chance to build a small desktop style web app.
 
 It is not a finished security product, and there are probably rough edges. If you spot a bug, have an idea, or want to improve something, feel free to open an issue or send a pull request. I would be happy to learn from the feedback.
 
@@ -20,7 +20,7 @@ It is not a finished security product, and there are probably rough edges. If yo
 ## Requirements
 
 - Node.js 18 or newer
-- PHP 8 with the `sockets` extension for the local directory service and tests
+- PHP 8 with the `sockets` extension for the local directory service and tests (dont need php if your going to use the allready hosted server)
 - Windows for automatic bundled i2pd startup; a running compatible I2P router can be configured on other platforms
 
 ## Quick start
@@ -71,7 +71,7 @@ Generated files, received files, logs, user databases, and Rust build output are
 
 The app validates filenames, limits request sizes, authenticates sessions, and verifies received file hashes. The automatic i2pd download is pinned to a specific release archive and checked against the upstream SHA-256 digest before extraction.
 
-Please treat this as an educational project rather than a production-ready secure file-sharing service. Review [reactie_beveiligingsrapport.md](reactie_beveiligingsrapport.md) before deployment, and do not expose the local UI or directory service directly to untrusted networks.
+Please treat this as an educational project rather than a production-ready secure file-sharing service.
 
 ## Contributing
 
