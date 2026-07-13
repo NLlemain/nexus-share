@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS SHARE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+  <!-- Session token injected by launcher — do not remove -->
+  <meta name="x-session-token" content="__SESSION_TOKEN_PLACEHOLDER__">
+</head>
+
+<body>
+
+  <!-- Loading Overlay for I2P Connection Block -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <h2>Establishing Secure Connection</h2>
+      <p>Connecting to the I2P anonymous network. Please wait...</p>
+      <p class="loading-status" id="loading-status-text">Starting I2P daemon...</p>
+    </div>
+  </div>
+
+  <!-- App Container -->
+  <div class="app-container">
+
+    <!-- Top Bar / Navigation -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="logo-symbol">//</span>
+        <h1>NEXUS SHARE</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-theme-toggle">DARK MODE</button>
+        <button class="btn btn-danger btn-sm" id="btn-logout" style="display: none;">LOGOUT</button>
+        <div class="system-status">
+          <div class="status-indicator" id="status-dot"></div>
+          <span class="status-text" id="status-label">OFFLINE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Destination Address Banner (Hidden as per requirement to not show base32 destination) -->
+    <section class="address-banner" id="address-banner-section" style="display: none !important;">
+      <div class="address-details">
+        <span class="address-title">YOUR I2P DESTINATION:</span>
+        <code class="address-value" id="my-address-text">not_initialized.b32.i2p</code>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-copy-address">COPY</button>
+    </section>
+
+    <!-- Grid Layout -->
+    <main class="app-grid">
+
+      <!-- Left Column: Operations -->
+      <div class="grid-col layout-left">
+
+        <!-- Auth Segment: Register / Login -->
+        <div class="card" id="auth-card">
+          <div class="tabs">
+            <button class="tab-btn active" id="tab-login-trigger">LOGIN</button>
+            <button class="tab-btn" id="tab-register-trigger">REGISTER</button>
+          </div>
+
+          <div class="tab-content">
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+              <div class="form-group">
+                <label for="login-username">USERNAME</label>
+                <input type="text" id="login-username" required autocomplete="username" placeholder="Enter username...">
+              </div>
+              <div class="form-group">
+                <label for="login-password">PASSWORD</label>
+                <input type="password" id="login-password" required autocomplete="current-password"
+                  placeholder="Enter password...">
+              </div>
+              <button type="submit" class="btn btn-primary w-100" id="btn-login-submit">LOGIN</button>
+            </form>
+
+            <!-- Register Form (hidden initially) -->
+            <form id="register-form" class="auth-form" style="display: none;">
+              <div class="form-group">
+                <label for="register-username">NEW USERNAME</label>
+                <input type="text" id="register-username" required autocomplete="username"
+                  placeholder="Desired username...">
+              </div>
+              <div class="form-group">
+                <label for="register-password">NEW PASSWORD</label>
+                <input type="password" id="register-password" required autocomplete="new-password"
+                  placeholder="Secure password...">
+              </div>
+              <button type="submit" class="btn btn-primary w-100" id="btn-register-submit">REGISTER ACCOUNT</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Transfer Segment (hidden until logged in) -->
+        <div class="card" id="transfer-card" style="display: none;">
+          <div class="card-header">
+            <h2>SECURE PAYLOAD DISPATCH</h2>
+          </div>
+          <div class="card-body">
+            <form id="transfer-form">
+              <div class="form-group">
+                <label for="transfer-recipient">RECIPIENT USERNAME</label>
+                <input type="text" id="transfer-recipient" required placeholder="Enter target peer name...">
+              </div>
+              <div class="form-group">
+                <label>PAYLOAD FILE</label>
+                <div class="dropzone" id="file-dropzone">
+                  <span class="dropzone-text">DRAG AND DROP PAYLOAD FILE OR CLICK TO SELECT</span>
+                  <input type="file" id="transfer-file-input" class="hidden-file-input">
+                </div>
+                <div id="selected-file-details" class="file-details" style="display: none;">
+                  <span class="file-name" id="selected-file-name">none</span>
+                  <span class="file-size" id="selected-file-size">0 bytes</span>
+                  <button type="button" class="btn-remove-file" id="btn-clear-file">&times;</button>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100" id="btn-send-submit" disabled>INITIATE SECURE
+                STREAM</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Active Transfers Segment (hidden initially) -->
+        <div class="card" id="transfers-card" style="display: none;">
+          <div class="card-header">
+            <h2>ACTIVE TRANSFERS</h2>
+          </div>
+          <div class="card-body" id="transfers-list"
+            style="padding: 12px; display: flex; flex-direction: column; gap: 12px;">
+            <!-- Dynamic Transfer Items go here -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Monitoring -->
+      <div class="grid-col layout-right">
+
+        <!-- Live Console Logs -->
+        <div class="card console-card">
+          <div class="card-header console-header">
+            <h2>LIVE CONSOLE FEED</h2>
+            <div class="console-actions">
+              <button class="btn btn-secondary btn-xs" id="btn-clear-logs">CLEAR</button>
+            </div>
+          </div>
+          <div class="console-body" id="console-output">
+            <div class="log-line system-line">[SYSTEM] Ready. Web UI online. Waiting for Node configuration.</div>
+          </div>
+        </div>
+
+        <!-- File Cabinet -->
+        <div class="card cabinet-card">
+          <div class="card-header">
+            <h2>RECEIVED CABINET</h2>
+            <button class="btn btn-secondary btn-xs" id="btn-refresh-files">REFRESH</button>
+          </div>
+          <div class="cabinet-body">
+            <div class="table-wrapper">
+              <table class="cabinet-table">
+                <thead>
+                  <tr>
+                    <th>FILE NAME</th>
+                    <th>SIZE</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody id="files-table-body">
+                  <tr>
+                    <td colspan="3" class="text-center empty-cabinet">No files received yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-links">
+        <span>NEXUS SHARE // SECURE EXCHANGE</span>
+      </div>
+      <div class="footer-actions">
+        <button class="btn btn-danger btn-xs" id="btn-shutdown-node">SHUTDOWN NODE</button>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

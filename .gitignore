@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Runtime state and user data
+.env
+nexus_data/
+received/
+sending_tmp/
+*.log
+!README.md
+nexus.log
+
+# Local test output
+test/received_alice/
+test/received_bob/
+test/*.log
+
+# Build output and distributable binaries
+wrapper/target/
+wrapper/node.exe
+bin/i2pd/
+nexus.exe
+*.zip
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
