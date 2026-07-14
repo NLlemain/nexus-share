@@ -1686,9 +1686,13 @@ function startWebUI() {
       console.log(`║  Log:  nexus.log                                  ║`);
       console.log('╚══════════════════════════════════════════════════╝');
       console.log('');
-      console.log('Browser opent automatisch. Druk CTRL+C om te stoppen.');
+      console.log(process.env.NEXUS_DESKTOP_MODE === '1'
+        ? 'Desktopvenster wordt geopend. Druk CTRL+C om te stoppen.'
+        : 'Browser opent automatisch. Druk CTRL+C om te stoppen.');
       webLog('[Server] Web UI actief op poort ' + UI_PORT + '.');
-      exec(`start http://localhost:${UI_PORT}`);
+      if (process.env.NEXUS_DESKTOP_MODE !== '1') {
+        exec(`start http://localhost:${UI_PORT}`);
+      }
     });
 
     // Start een periodieke keepalive-taak (elke 60 seconden) om sessie-timeout te voorkomen

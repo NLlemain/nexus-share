@@ -34,6 +34,7 @@ fn start_application(app_dir: &std::path::Path) -> std::io::Result<Child> {
     Command::new(node_executable)
         .arg("p2p.js")
         .current_dir(app_dir)
+        .env("NEXUS_DESKTOP_MODE", "1")
         .stdin(Stdio::null())
         .spawn()
 }

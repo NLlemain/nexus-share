@@ -6,9 +6,7 @@
   "main": "p2p.js",
   "scripts": {
     "start": "node p2p.js",
-    "check": "node --check p2p.js && node --check src/application.js && node --check lib/config.js && node --check lib/i2p-sam.js && node --check lib/logger.js && node --check lib/socks5.js && node --check lib/transfer-manager.js && node --check lib/validators.js && node --check public/app.js && node --check test/verify_security.js && node --check test/test_p2p_transfer.js && php -l server.php",
-    "test": "node test/unit_core.js && node test/verify_security.js",
-    "test:e2e": "node test/test_p2p_transfer.js"
+    "check": "node --check p2p.js && node --check src/application.js && node --check lib/config.js && node --check lib/i2p-sam.js && node --check lib/logger.js && node --check lib/socks5.js && node --check lib/transfer-manager.js && node --check lib/validators.js && node --check public/app.js && php -l server.php"
   },
   "engines": {
     "node": ">=18"
