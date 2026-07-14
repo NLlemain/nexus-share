@@ -25,16 +25,16 @@ It is not a finished security product, and there are probably rough edges. If yo
 
 ## Hosted option
 
-There is already a hosted version available at [webgenie-ai.com](https://webgenie-ai.com/). Use it if you would rather try the project in the browser instead of running the local setup.
+There is already a hosted version available at [webgenie-ai.com](https://webgenie-ai.com/). Use it if you would rather try the project in the browser without running the local setup.
 
-The desktop app and the release ZIP use `https://webgenie-ai.com/server.php` as their default directory service. It is an HTTPS endpoint, so it uses port `443`.
+The local app uses `https://webgenie-ai.com/server.php` as its default directory service. It is an HTTPS endpoint, so it uses port `443`.
 
 ## Quick start
 
 1. Copy [.env.example](.env.example) to `.env` and adjust settings if needed. The built-in configuration loader reads `.env`; shell variables take precedence.
 2. Run `npm run check` to validate JavaScript and PHP syntax.
 3. Run `npm start`.
-4. Open <http://127.0.0.1:3000>, register an account, then sign in.
+4. The browser opens automatically at <http://127.0.0.1:3000>. Register an account, then sign in.
 
 By default, the app uses the hosted PHP directory service at `https://webgenie-ai.com/server.php` on HTTPS port `443`. To use the included local TCP directory service instead, set `AUTH_HOST=127.0.0.1`, `AUTH_PORT_UI=8000`, and `AUTH_USE_HTTP=0` in `.env`.
 
