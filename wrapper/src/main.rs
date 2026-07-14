@@ -1,6 +1,7 @@
-#![windows_subsystem = "console"]
+#![windows_subsystem = "windows"]
 
 use std::env;
+use std::fs::File;
 use std::process::{Child, Command, Stdio};
 
 use tao::{
@@ -31,11 +32,17 @@ fn start_application(app_dir: &std::path::Path) -> std::io::Result<Child> {
             }
         });
 
+    let log_path = app_dir.join("nexus-desktop.log");
+    let log_file = File::create(log_path)?;
+    let error_log = log_file.try_clone()?;
+
     Command::new(node_executable)
         .arg("p2p.js")
         .current_dir(app_dir)
         .env("NEXUS_DESKTOP_MODE", "1")
         .stdin(Stdio::null())
+        .stdout(Stdio::from(log_file))
+        .stderr(Stdio::from(error_log))
         .spawn()
 }
 

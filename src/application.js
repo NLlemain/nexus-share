@@ -4,7 +4,7 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { execSync, spawn, exec } = require('child_process');
+const { spawn, exec } = require('child_process');
 const https = require('https');
 const http = require('http');
 const { config } = require('../lib/config');
@@ -1014,174 +1014,21 @@ function performSendFlow(file, targetUsername, myUsername, sessionToken, authHos
     });
   });
 }
-
-
-
-
-let i2pChildProcess = null;
-
-// Ruim het I2P-achtergrondproces op bij het afsluiten van Node
-function cleanupI2p() {
-  if (i2pChildProcess) {
-    console.log('[I2P Manager] Stoppen van lokale i2pd daemon...');
-    try {
-      i2pChildProcess.kill();
-    } catch (e) { }
-    i2pChildProcess = null;
-  }
-}
-
-process.on('exit', cleanupI2p);
-process.on('SIGINT', () => {
-  cleanupI2p();
-  process.exit(0);
-});
-process.on('SIGTERM', () => {
-  cleanupI2p();
-  process.exit(0);
-});
-
-function startI2pProcess(exePath, callback) {
-  try {
-    i2pChildProcess = spawn(exePath, [
-      '--sam.enabled=1',
-      `--sam.port=${I2P_CONFIG.samPort}`,
-      '--socksproxy.enabled=1',
-      `--socksproxy.port=${I2P_CONFIG.socksPort}`,
-      '--httpproxy.enabled=0',
-      '--http.enabled=0'
-    ], {
-      detached: true,
-      stdio: 'ignore'
-    });
-
-    i2pChildProcess.unref();
-
-    console.log('[I2P Manager] i2pd daemon gestart in achtergrond. Wachten tot SAM Bridge online komt...');
-
-    let retries = 0;
-    const maxRetries = 120; // 120 seconden wachttijd (genoeg voor UAC / admin bevoegdheid verlenen)
-
-    function checkSamOnline() {
-      const socket = net.connect({ port: I2P_CONFIG.samPort, host: I2P_CONFIG.samHost }, () => {
-        socket.destroy();
-        console.log('[I2P Manager] SAM Bridge is online gekomen en luistert!');
-        callback(null, i2pChildProcess);
-      });
-
-      socket.on('error', () => {
-        retries++;
-        if (retries % 5 === 0) {
-          console.log(`[I2P Manager] Wachten tot SAM Bridge online komt... (poging ${retries}/${maxRetries})`);
-        }
-        if (retries >= maxRetries) {
-          callback(new Error(`SAM Bridge startte niet op binnen de verwachte tijd (${maxRetries}s).`));
-          return;
-        }
-        setTimeout(checkSamOnline, 1000);
-      });
-    }
-
-    setTimeout(checkSamOnline, 1000);
-  } catch (err) {
-    callback(err);
-  }
-}
-
 function checkAndInstallI2P(callback) {
-  // Eerst testen of SAM Bridge al online is (poort 7656)
+  // The application intentionally uses a user-managed I2P router. It never downloads
+  // or launches a router binary, so antivirus products can make their own trust decision.
   const checkSocket = net.connect({ port: I2P_CONFIG.samPort, host: I2P_CONFIG.samHost }, () => {
     checkSocket.destroy();
-    console.log('[I2P Manager] SAM Bridge is al actief op poort 7656.');
-    callback(null, null); // Reeds actief
+    console.log(`[I2P Manager] SAM Bridge is actief op ${I2P_CONFIG.samHost}:${I2P_CONFIG.samPort}.`);
+    callback(null, null);
   });
 
   checkSocket.on('error', () => {
-    // SAM Bridge is offline, we moeten kijken of we i2pd lokaal hebben
-    const binDir = path.join(PROJECT_ROOT, 'bin', 'i2pd');
-    const exePath = path.join(binDir, 'i2pd.exe');
-
-    if (fs.existsSync(exePath)) {
-      console.log('[I2P Manager] SAM Bridge offline, maar lokale i2pd.exe gevonden. Starten...');
-      startI2pProcess(exePath, callback);
-    } else {
-      console.log('[I2P Manager] SAM Bridge offline en geen lokale i2pd.exe gevonden.');
-      console.log('[I2P Manager] Downloaden van portable PurpleI2P i2pd (v2.60.0) voor Windows...');
-
-      fs.mkdirSync(binDir, { recursive: true });
-      const zipPath = path.join(binDir, 'i2pd.zip');
-      const file = fs.createWriteStream(zipPath);
-
-      const downloadUrl = 'https://github.com/PurpleI2P/i2pd/releases/download/2.60.0/i2pd_2.60.0_win64_mingw.zip';
-      // SHA-256 published by the official PurpleI2P GitHub release for this exact archive.
-      const expectedArchiveHash = '8be7f4c9bde7c8876b4056c9a3e46212331f37a944318c7e5cd5f48367b2e851';
-
-      function downloadFile(url) {
-        https.get(url, (response) => {
-          if (response.statusCode === 302 || response.statusCode === 301) {
-            downloadFile(response.headers.location);
-            return;
-          }
-          if (response.statusCode !== 200) {
-            callback(new Error(`Download mislukt met statuscode ${response.statusCode}`));
-            return;
-          }
-          response.pipe(file);
-          file.on('finish', () => {
-            file.close(() => {
-              const actualArchiveHash = crypto.createHash('sha256').update(fs.readFileSync(zipPath)).digest('hex');
-              if (!crypto.timingSafeEqual(Buffer.from(actualArchiveHash, 'hex'), Buffer.from(expectedArchiveHash, 'hex'))) {
-                fs.unlinkSync(zipPath);
-                callback(new Error('i2pd archive integrity check failed; the download was discarded.'));
-                return;
-              }
-
-              console.log('[I2P Manager] Download integrity check passed. Extracting ZIP via PowerShell...');
-              try {
-                const escapedZipPath = zipPath.replace(/'/g, "''");
-                const escapedBinDir = binDir.replace(/'/g, "''");
-                execSync(`powershell -Command "Expand-Archive -Path '${escapedZipPath}' -DestinationPath '${escapedBinDir}' -Force"`);
-                fs.unlinkSync(zipPath); // Verwijder de ZIP
-
-                // Zoek recursief naar i2pd.exe (in het geval van een geneste ZIP structuur)
-                const foundExe = findFileRecursively(binDir, 'i2pd.exe');
-                if (foundExe) {
-                  if (foundExe !== exePath) {
-                    fs.renameSync(foundExe, exePath);
-                  }
-                  console.log('[I2P Manager] Lokale i2pd succesvol geïnstalleerd. Starten...');
-                  startI2pProcess(exePath, callback);
-                } else {
-                  callback(new Error('i2pd.exe niet gevonden na het uitpakken van de ZIP.'));
-                }
-              } catch (extractErr) {
-                callback(new Error(`Fout bij uitpakken van ZIP: ${extractErr.message}`));
-              }
-            });
-          });
-        }).on('error', (err) => {
-          fs.unlinkSync(zipPath);
-          callback(err);
-        });
-      }
-
-      downloadFile(downloadUrl);
-    }
+    callback(new Error(
+      `I2P SAM Bridge is unavailable at ${I2P_CONFIG.samHost}:${I2P_CONFIG.samPort}. ` +
+      'Install and start a trusted I2P router yourself, then enable its SAM bridge.'
+    ));
   });
-}
-
-function findFileRecursively(dir, filename) {
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      const res = findFileRecursively(fullPath, filename);
-      if (res) return res;
-    } else if (file.toLowerCase() === filename.toLowerCase()) {
-      return fullPath;
-    }
-  }
 }
 
 function convertI2PBase64toBase32(base64Destination) {

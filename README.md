@@ -15,13 +15,13 @@ It is not a finished security product, and there are probably rough edges. If yo
 - Authenticated transfer metadata and SHA-256 file-integrity validation
 - Explicit approval for incoming transfers
 - Local-only Web UI bound to `127.0.0.1`
-- Automatic i2pd bootstrap with SHA-256 archive verification
+- Uses a user-managed I2P router through its SAM and SOCKS interfaces
 
 ## Requirements
 
 - Node.js 18 or newer
 - PHP 8 with the `sockets` extension only when using the included local directory service or running its tests; it is not required for the hosted service
-- Windows for automatic bundled i2pd startup; a running compatible I2P router can be configured on other platforms
+- A trusted, user-managed I2P router with SAM enabled (default `127.0.0.1:7656`) and SOCKS enabled (default `127.0.0.1:4447`)
 
 ## Hosted option
 
@@ -38,7 +38,7 @@ The desktop app and the release ZIP use `https://webgenie-ai.com/server.php` as 
 
 By default, the app uses the hosted PHP directory service at `https://webgenie-ai.com/server.php` on HTTPS port `443`. To use the included local TCP directory service instead, set `AUTH_HOST=127.0.0.1`, `AUTH_PORT_UI=8000`, and `AUTH_USE_HTTP=0` in `.env`.
 
-For the Windows release ZIP, run `nexus-share.exe`. It starts the local app and opens it in a desktop window. Node.js is still required; PHP is only required when using the included local directory service.
+For the Windows release ZIP, run `nexus-share.exe`. It starts the local app inside a desktop window without opening a separate browser. Node.js is bundled in the ZIP. If the desktop app does not start, see `nexus-desktop.log` beside the executable. PHP is only required when using the included local directory service.
 
 ## Configuration
 
@@ -57,9 +57,7 @@ The environment template documents all supported options. Important settings inc
 ## Development and testing
 
 - `npm run check` — syntax-check JavaScript and PHP files
-- `npm test` — run the local directory-server security checks
-- `npm run test:e2e` — run the two-node I2P transfer test; this starts local services and may take several minutes
-- `cd wrapper; cargo build --release` — build the optional Windows launcher. Place the resulting executable beside `p2p.js`; it requires Node.js, or a `NEXUS_NODE_PATH` environment variable that points to Node.js.
+- `cd wrapper; cargo build --release` — build the optional Windows launcher. Place the resulting executable beside `p2p.js`; it uses `node.exe` beside the launcher when present, otherwise `NEXUS_NODE_PATH` or the system Node.js installation.
 
 Generated files, received files, logs, user databases, and Rust build output are excluded through [.gitignore](.gitignore).
 
@@ -78,7 +76,7 @@ Generated files, received files, logs, user databases, and Rust build output are
 
 ## Security notes
 
-The app validates filenames, limits request sizes, authenticates sessions, and verifies received file hashes. The automatic i2pd download is pinned to a specific release archive and checked against the upstream SHA-256 digest before extraction.
+The app validates filenames, limits request sizes, authenticates sessions, and verifies received file hashes. It does not download, install, or launch router binaries; install and trust your I2P router separately.
 
 Please treat this as an educational project rather than a production-ready secure file-sharing service.
 
