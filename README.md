@@ -38,8 +38,6 @@ The desktop app and the release ZIP use `https://webgenie-ai.com/server.php` as 
 
 By default, the app uses the hosted PHP directory service at `https://webgenie-ai.com/server.php` on HTTPS port `443`. To use the included local TCP directory service instead, set `AUTH_HOST=127.0.0.1`, `AUTH_PORT_UI=8000`, and `AUTH_USE_HTTP=0` in `.env`.
 
-For the Windows release ZIP, run `nexus-share.exe`. It starts the local app inside a desktop window without opening a separate browser. Node.js is bundled in the ZIP. If the desktop app does not start, see `nexus-desktop.log` beside the executable. PHP is only required when using the included local directory service.
-
 ## Configuration
 
 The environment template documents all supported options. Important settings include:
@@ -57,9 +55,8 @@ The environment template documents all supported options. Important settings inc
 ## Development and testing
 
 - `npm run check` — syntax-check JavaScript and PHP files
-- `cd wrapper; cargo build --release` — build the optional Windows launcher. Place the resulting executable beside `p2p.js`; it uses `node.exe` beside the launcher when present, otherwise `NEXUS_NODE_PATH` or the system Node.js installation.
 
-Generated files, received files, logs, user databases, and Rust build output are excluded through [.gitignore](.gitignore).
+Generated files, received files, logs, and user databases are excluded through [.gitignore](.gitignore).
 
 ## Code structure
 

@@ -15,11 +15,9 @@ test/received_alice/
 test/received_bob/
 test/*.log
 
-# Build output and distributable binaries
-wrapper/target/
-wrapper/node.exe
+# Downloaded router binaries and distributable archives
+wrapper/
 bin/i2pd/
-nexus.exe
 *.zip
 
 # Operating system and editor files
