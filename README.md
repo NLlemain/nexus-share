@@ -20,8 +20,14 @@ It is not a finished security product, and there are probably rough edges. If yo
 ## Requirements
 
 - Node.js 18 or newer
-- PHP 8 with the `sockets` extension for the local directory service and tests (dont need php if your going to use the allready hosted server)
+- PHP 8 with the `sockets` extension only when using the included local directory service or running its tests; it is not required for the hosted service
 - Windows for automatic bundled i2pd startup; a running compatible I2P router can be configured on other platforms
+
+## Hosted option
+
+There is already a hosted version available at [webgenie-ai.com](https://webgenie-ai.com/). Use it if you would rather try the project in the browser instead of running the local setup.
+
+The desktop app and the release ZIP use `https://webgenie-ai.com/server.php` as their default directory service. It is an HTTPS endpoint, so it uses port `443`.
 
 ## Quick start
 
@@ -30,7 +36,9 @@ It is not a finished security product, and there are probably rough edges. If yo
 3. Run `npm start`.
 4. Open <http://127.0.0.1:3000>, register an account, then sign in.
 
-By default, the app starts its local TCP directory service on port `8000`. To use a hosted JSON directory service, configure `AUTH_SERVER_URL` and set `AUTH_USE_HTTP=1`.
+By default, the app uses the hosted PHP directory service at `https://webgenie-ai.com/server.php` on HTTPS port `443`. To use the included local TCP directory service instead, set `AUTH_HOST=127.0.0.1`, `AUTH_PORT_UI=8000`, and `AUTH_USE_HTTP=0` in `.env`.
+
+For the Windows release ZIP, run `nexus-share.exe`. It starts the local app and opens it in a desktop window. Node.js is still required; PHP is only required when using the included local directory service.
 
 ## Configuration
 
@@ -39,7 +47,8 @@ The environment template documents all supported options. Important settings inc
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `UI_PORT` | `3000` | Local browser UI port |
-| `AUTH_PORT_UI` | `8000` | Local directory service port |
+| `AUTH_SERVER_URL` | `https://webgenie-ai.com/server.php` | Hosted PHP directory-service URL |
+| `AUTH_PORT_UI` | `443` | Hosted HTTPS directory-service port; use `8000` for the local PHP service |
 | `LISTEN_PORT` | `9090` | I2P receiver port |
 | `MAX_UPLOAD_BYTES` | `26214400` | Maximum file size accepted by the Web UI (25 MiB) |
 | `SOCKET_TIMEOUT` | `30000` | Peer socket inactivity timeout in milliseconds |

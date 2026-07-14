@@ -20,7 +20,16 @@ fn application_directory() -> std::io::Result<std::path::PathBuf> {
 }
 
 fn start_application(app_dir: &std::path::Path) -> std::io::Result<Child> {
-    let node_executable = env::var("NEXUS_NODE_PATH").unwrap_or_else(|_| "node".to_owned());
+    let bundled_node = app_dir.join("node.exe");
+    let node_executable = env::var("NEXUS_NODE_PATH")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|_| {
+            if bundled_node.is_file() {
+                bundled_node
+            } else {
+                std::path::PathBuf::from("node")
+            }
+        });
 
     Command::new(node_executable)
         .arg("p2p.js")
